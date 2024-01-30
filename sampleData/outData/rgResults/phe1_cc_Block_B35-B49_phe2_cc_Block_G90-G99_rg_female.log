@@ -1,0 +1,66 @@
+*********************************************************************
+* LD Score Regression (LDSC)
+* Version 1.0.1
+* (C) 2014-2019 Brendan Bulik-Sullivan and Hilary Finucane
+* Broad Institute of MIT and Harvard / MIT Department of Mathematics
+* GNU General Public License v3
+*********************************************************************
+Call: 
+./ldsc.py \
+--ref-ld-chr /cbica/projects/kimlab/software_dir/ldsc/eur_w_ld_chr/ \
+--out rgResults/female/phe1_cc_Block_B35-B49_phe2_cc_Block_G90-G99_rg_female \
+--rg munged_female_bernabeu_blocks/munged_cc_Block_B35-B49.sumstats.gz,munged_female_bernabeu_blocks/munged_cc_Block_G90-G99.sumstats.gz \
+--w-ld-chr /cbica/projects/kimlab/software_dir/ldsc/eur_w_ld_chr/ 
+
+Beginning analysis at Wed Apr 19 10:55:45 2023
+Reading summary statistics from munged_female_bernabeu_blocks/munged_cc_Block_B35-B49.sumstats.gz ...
+Read summary statistics for 26520 SNPs.
+Reading reference panel LD Score from /cbica/projects/kimlab/software_dir/ldsc/eur_w_ld_chr/[1-22] ... (ldscore_fromlist)
+Read reference panel LD Scores for 1290028 SNPs.
+Removing partitioned LD Scores with zero variance.
+Reading regression weight LD Score from /cbica/projects/kimlab/software_dir/ldsc/eur_w_ld_chr/[1-22] ... (ldscore_fromlist)
+Read regression weight LD Scores for 1290028 SNPs.
+After merging with reference panel LD, 26245 SNPs remain.
+After merging with regression SNP LD, 26245 SNPs remain.
+Computing rg for phenotype 2/2
+Reading summary statistics from munged_female_bernabeu_blocks/munged_cc_Block_G90-G99.sumstats.gz ...
+Read summary statistics for 1217311 SNPs.
+After merging with summary statistics, 26245 SNPs remain.
+26245 SNPs with valid alleles.
+WARNING: number of SNPs less than 200k; this is almost always bad.
+
+Heritability of phenotype 1
+---------------------------
+Total Observed scale h2: 0.0051 (0.0045)
+Lambda GC: 0.9898
+Mean Chi^2: 1.0013
+Intercept: 0.9809 (0.0194)
+Ratio < 0 (usually indicates GC correction).
+
+Heritability of phenotype 2/2
+-----------------------------
+Total Observed scale h2: 0.0105 (0.0048)
+Lambda GC: 1.0075
+Mean Chi^2: 1.0063
+Intercept: 0.9667 (0.0188)
+Ratio < 0 (usually indicates GC correction).
+
+Genetic Covariance
+------------------
+Total Observed scale gencov: 0.0061 (0.0033)
+Mean z1*z2: 0.0384
+Intercept: 0.0147 (0.0141)
+
+Genetic Correlation
+-------------------
+Genetic Correlation: 0.8286 (0.6083)
+Z-score: 1.3621
+P: 0.1732
+
+
+Summary of Genetic Correlation Results
+p1                                                                 p2      rg      se       z       p  h2_obs  h2_obs_se  h2_int  h2_int_se  gcov_int  gcov_int_se
+munged_female_bernabeu_blocks/munged_cc_Block_B35-B49.sumstats.gz  munged_female_bernabeu_blocks/munged_cc_Block_G90-G99.sumstats.gz  0.8286  0.6083  1.3621  0.1732  0.0105     0.0048  0.9667     0.0188    0.0147       0.0141
+
+Analysis finished at Wed Apr 19 10:55:53 2023
+Total time elapsed: 8.37s

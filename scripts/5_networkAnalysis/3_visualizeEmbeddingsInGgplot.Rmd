@@ -1,0 +1,332 @@
+---
+title: "Embedding Visualizations"
+author: "Vivek Sriram"
+date: '2023-06-07'
+output: pdf_document
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(umap)
+library(gridExtra)
+library(ggpubr)
+```
+
+# Read in input data files
+
+Includes k-means clustering results with k=5
+```{r}
+embeddingMat_m = read.csv("/Users/viveksriram/Desktop/embeddingMat_m_fixed.csv")
+embeddingMat_m$kmeansLabel = as.factor(embeddingMat_m$kmeansLabel)
+
+embeddingMat_f = read.csv("/Users/viveksriram/Desktop/embeddingMat_f_fixed.csv")
+embeddingMat_f$kmeansLabel = as.factor(embeddingMat_f$kmeansLabel)
+```
+
+H53-H54 (visual disturbances and blindness)
+H10-H13 (disorders of conjunctiva)
+H25-H28 (disorders of lens)
+
+```{r}
+interestingDiseases = c("C64-C68", "F20-F29", "I20-I25", "L40-L45", "M05-M14", "M15-M19", "M45-M49")
+
+embeddingMat_f$toBeLabeled = ifelse(embeddingMat_f$Trait %in% interestingDiseases, 1, 0)
+embeddingMat_m$toBeLabeled = ifelse(embeddingMat_m$Trait %in% interestingDiseases, 1, 0)
+```
+
+Female
+M05 - M14: Inflammatory polyathropathies (rheumatoid arthritis)
+M15 - M19: Osteoarthritis
+M80 - M85: Osteoporosis
+L80 - L99: Scleroderma
+G35 - G37: Multiple sclerosis
+
+Male
+M45 - M49: Ankylosing spondylitis
+I20 - I25: Ischemic heart diseases
+C43 - C44: Melanoma
+E70 - E90: Metabolic disorders
+L40 - L45: Psoriasis
+
+
+# PCA
+```{r}
+pca_category_m = ggplot(embeddingMat_m, 
+       aes(x=pca.2d.one, 
+           y=pca.2d.two,
+           color=Disease.Category,
+           label=Trait)) +
+  geom_point() +
+  geom_label(aes(pca.2d.one, pca.2d.two, label=Trait), 
+            data = embeddingMat_m[embeddingMat_m$Trait %in% interestingDiseases,]) +
+  labs(title="Male DDN",
+       x="Principal Component 1", 
+       y = "Principal Component 2") +
+  xlim(-0.28, 0.28) +
+  ylim(-0.28, 0.28)
+```
+
+```{r}
+pca_category_f = ggplot(embeddingMat_f, 
+       aes(x=pca.2d.one, 
+           y=pca.2d.two,
+           color=Disease.Category)) +
+  geom_point() +
+  geom_label(aes(pca.2d.one, pca.2d.two, label=Trait), 
+            data = embeddingMat_f[embeddingMat_f$Trait %in% interestingDiseases,]) +
+  labs(title="Female DDN",
+       x="Principal Component 1", 
+       y = "Principal Component 2") +
+  xlim(-0.28, 0.28) +
+  ylim(-0.28, 0.28)
+```
+
+```{r}
+ggarrange(pca_category_f, pca_category_m, 
+          common.legend = TRUE)
+```
+
+```{r}
+pca_kmeans_m = ggplot(embeddingMat_m, 
+       aes(x=pca.2d.one, 
+           y=pca.2d.two,
+           color=kmeansLabel)) +
+  geom_point() +
+  geom_label(aes(pca.2d.one, pca.2d.two, label=Trait), 
+            data = embeddingMat_m[embeddingMat_m$Trait %in% interestingDiseases,]) +
+  labs(title="Male DDN",
+       x="Principal Component 1", 
+       y = "Principal Component 2") +
+  xlim(-0.28, 0.28) +
+  ylim(-0.28, 0.28)
+```
+
+```{r}
+pca_kmeans_f = ggplot(embeddingMat_f, 
+       aes(x=pca.2d.one, 
+           y=pca.2d.two,
+           color=kmeansLabel)) +
+  geom_point() +
+  geom_label(aes(pca.2d.one, pca.2d.two, label=Trait), 
+            data = embeddingMat_f[embeddingMat_f$Trait %in% interestingDiseases,]) +
+  labs(title="Female DDN",
+       x="Principal Component 1", 
+       y = "Principal Component 2") +
+  xlim(-0.28, 0.28) +
+  ylim(-0.28, 0.28)
+```
+
+```{r}
+ggarrange(pca_kmeans_f, pca_kmeans_m, common.legend = TRUE)
+```
+
+
+# UMAP
+```{r}
+embeddingData_f = embeddingMat_f %>%
+  select(X0, X1, X2, X3, X4, X5, X6, X7, X8, X9, X10, X11, X12, X13, X14, X15)
+
+embeddingData_m = embeddingMat_m %>%
+  select(X0, X1, X2, X3, X4, X5, X6, X7, X8, X9, X10, X11, X12, X13, X14, X15)
+```
+
+```{r}
+embeddingDataM.umap <- umap(embeddingData_m, n_neighbors = 3)
+embeddingDataF.umap <- umap(embeddingData_f, n_neighbors = 3)
+```
+
+```{r}
+embeddingMat_m$umapDim1 = embeddingDataM.umap$layout[,1]
+embeddingMat_m$umapDim2 = embeddingDataM.umap$layout[,2]
+
+embeddingMat_f$umapDim1 = embeddingDataF.umap$layout[,1]
+embeddingMat_f$umapDim2 = embeddingDataF.umap$layout[,2]
+```
+
+
+
+```{r}
+umap_category_f = ggplot(embeddingMat_f, 
+       aes(x=umapDim1, 
+           y=umapDim2,
+           color=Disease.Category)) +
+  geom_point() +
+  geom_label(aes(umapDim1, umapDim2, label=Trait), 
+            data = embeddingMat_f[embeddingMat_f$Trait %in% interestingDiseases,]) +
+  labs(title="Female DDN",
+       x="UMAP Dimension 1", 
+       y = "UMAP Dimension 2") +
+  xlim(-5, 5) +
+  ylim(-5,5)
+```
+
+```{r}
+umap_category_m = ggplot(embeddingMat_m, 
+       aes(x=umapDim1, 
+           y=umapDim2,
+           color=Disease.Category,
+           label=Trait)) +
+  geom_point() +
+  geom_label(aes(umapDim1, umapDim2, label=Trait), 
+            data = embeddingMat_m[embeddingMat_m$Trait %in% interestingDiseases,]) +
+  labs(title="Male DDN",
+       x="UMAP Dimension 1", 
+       y = "UMAP Dimension 2") +
+  xlim(-5, 5) +
+  ylim(-5,5)
+```
+
+```{r}
+ggarrange(umap_category_f, umap_category_m, common.legend = TRUE)
+```
+
+
+
+```{r}
+umap_kmeans_f = ggplot(embeddingMat_f, 
+       aes(x=umapDim1, 
+           y=umapDim2,
+           color=kmeansLabel)) +
+  geom_point() +
+  geom_label(aes(umapDim1, umapDim2, label=Trait), 
+            data = embeddingMat_f[embeddingMat_f$Trait %in% interestingDiseases,]) +
+  labs(title="Female DDN",
+       x="UMAP Dimension 1", 
+       y = "UMAP Dimension 2") +
+  xlim(-5, 5) +
+  ylim(-5,5)
+```
+
+```{r}
+umap_kmeans_m = ggplot(embeddingMat_m, 
+       aes(x=umapDim1, 
+           y=umapDim2,
+           color=kmeansLabel)) +
+  geom_point() +
+  geom_label(aes(umapDim1, umapDim2, label=Trait), 
+            data = embeddingMat_m[embeddingMat_m$Trait %in% interestingDiseases,]) +
+  labs(title="Male DDN",
+       x="UMAP Dimension 1", 
+       y = "UMAP Dimension 2") +
+  xlim(-5, 5) +
+  ylim(-5,5)
+```
+
+```{r}
+ggarrange(umap_kmeans_f, umap_kmeans_m, common.legend = TRUE)
+```
+
+
+
+
+
+```{r}
+traitDescriptions = read.csv("/Users/viveksrm/Desktop/traitDescription_diseaseCategories.csv") %>%
+  select(Trait, Description, Disease.Category)
+```
+
+# ssDDN 1e-4 
+
+## p = 1, q = 1, 100 runs, 10000 walks, random seed starting at 1
+```{r}
+# Embedding distances for individual diseases
+embeddingDistances = read.csv("/Users/viveksrm/Desktop/embeddingDistances_neg4_100runs_10000walks.csv", sep = "\t")
+
+embeddingDistances = left_join(embeddingDistances, traitDescriptions, by = "Trait")
+
+embeddingDistances_sorted <- embeddingDistances[order(embeddingDistances$meanDist),] 
+```
+
+
+```{r}
+# Embedding distances for individual diseases
+categoryDistances = read.csv("/Users/viveksrm/Desktop/embeddingDistances_neg4_100runs_10000walks.csv", sep = "\t")
+
+categoryDistances_sorted <- categoryDistances[order(categoryDistances$meanDist),] 
+```
+
+
+
+```{r}
+head(embeddingDistances_sorted)
+```
+Cosine lowest 5 distances
+- N20 to N23 Urolithiasis
+- K65 to K67 Diseases of peritoeneum
+- H30 to H36 Disorders of choroid and retina
+- M91 to M94 Chondropathies
+- M15 to M19 Arthrosis
+
+```{r}
+tail(embeddingDistances_sorted)
+```
+Cosine highest 5 distances:
+- I20 to I25 Ischaemic heart diseases
+- N25 to N29 Other disorders of kidney and ureter
+- H00 to H06 Disorders of eyelid, lacrimal system and orbit
+- L80 to L99 Other disorders of the skin and subcutaneous tissue
+- H25 to H28 Disorders of lens
+
+
+
+
+```{r}
+p<-ggplot(embeddingDistances_sorted[72:102,], aes(x=meanDist, y= reorder(Trait, meanDist))) + 
+  geom_point()+
+  geom_errorbar(aes(xmin=meanDist-stdDevDist, xmax=meanDist+stdDevDist), width=.2,
+                position=position_dodge(0.05))
+  
+p
+```
+
+```{r}
+p<-ggplot(embeddingDistances_sorted[1:30,], aes(x=meanDist, y= reorder(Trait, meanDist))) + 
+  geom_point()+
+  geom_errorbar(aes(xmin=meanDist-stdDevDist, xmax=meanDist+stdDevDist), width=.2,
+                position=position_dodge(0.05))
+  
+p
+```
+
+```{r}
+range(embeddingDistances_neg4_p1q1_sorted$meanDist)
+median(embeddingDistances_neg4_p1q1_sorted$meanDist)
+mean(embeddingDistances_neg4_p1q1_sorted$meanDist)
+```
+
+```{r}
+ggplot(embeddingDistances_neg4_p1q1_sorted, aes(x=meanDist)) + geom_histogram()
+```
+
+
+
+```{r}
+p<-ggplot(embeddingDistances_neg4_p1q1_sorted[72:102,], aes(x=meanDist, y= reorder(Trait, meanDist))) + 
+  geom_point()+
+  geom_errorbar(aes(xmin=meanDist-stdDevDist, xmax=meanDist+stdDevDist), width=.2,
+                position=position_dodge(0.05))
+  
+p
+```
+
+```{r}
+p<-ggplot(embeddingDistances_neg4_p1q1_sorted[1:30,], aes(x=meanDist, y= reorder(Trait, meanDist))) + 
+  geom_point()+
+  geom_errorbar(aes(xmin=meanDist-stdDevDist, xmax=meanDist+stdDevDist), width=.2,
+                position=position_dodge(0.05))
+  
+p
+```
+
+```{r}
+range(embeddingDistances_neg4_p1q1_sorted$meanDist)
+median(embeddingDistances_neg4_p1q1_sorted$meanDist)
+mean(embeddingDistances_neg4_p1q1_sorted$meanDist)
+```
+
+```{r}
+ggplot(embeddingDistances_neg4_p1q1_sorted, aes(x=meanDist)) + geom_histogram()
+```
+
+
