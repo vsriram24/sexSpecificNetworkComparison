@@ -1,0 +1,109 @@
+
+```{r}
+library(tidyverse)
+library(magrittr);library(igraph);library(tidyverse)
+library(gridExtra)
+library(patchwork)
+library(ClustAssess)
+```
+
+
+
+```{r}
+G_f_clusters <- read.csv("/Users/vsriram/Desktop/gephi/G_f_clusters.csv")
+G_f_clusters$Cluster <- chartr("13", "31", G_f_clusters$Cluster)
+G_f_clusters$Cluster <- chartr("20", "02", G_f_clusters$Cluster)
+G_m_clusters <- read.csv("/Users/vsriram/Desktop/gephi/G_m_clusters.csv")
+```
+
+```{r}
+categories <- G_m_clusters %$% disease_category |> unique() |> sort()
+
+cat_colors <- c("#FF1519","#FFEBB1","#75FF9B","#052423","#FFC124",
+                "#FF9581","#23A4A8","#8EFDFF","#3078FF","#6D2DFF",
+                "#DAAEFF","#808080","#FF0AFC","#4ABA2B")
+
+color_tib <- tibble(categories,cat_colors)
+```
+
+```{r}
+G_f_clusters <- G_f_clusters %>% 
+  mutate(disease_category = factor(disease_category, 
+                                   levels = c(color_tib$categories))) |> 
+  mutate(Cluster = factor(Cluster))
+  
+G_m_clusters <- G_m_clusters %>% 
+  mutate(disease_category = factor(disease_category, 
+                                   levels = c(color_tib$categories))) |> 
+  mutate(Cluster = factor(Cluster))
+```
+
+
+```{r}
+cluster_plot_f <- G_f_clusters |>
+  ggplot(aes(fill = disease_category, x = Cluster)) +
+  geom_bar(position = "stack", alpha = 0.9) +
+  theme_classic() +
+  scale_fill_manual(values = color_tib$cat_colors) +
+  scale_y_continuous(limits = c(0,60), expand = c(0, 1.0)) +
+  theme(legend.title=element_blank(),
+        legend.position = "none",
+        plot.title.position = "panel") +
+  labs(y = "Number of phenotypes", x = "Cluster ID") +
+  ggtitle("Female-specific Network")
+```
+
+```{r}
+cluster_plot_m <- G_m_clusters %>% 
+  ggplot(aes(fill = disease_category, x = Cluster)) +
+  geom_bar(position = "stack", alpha = 0.9) +
+  theme_classic() +
+  scale_fill_manual(name = "Disease Category", values = color_tib$cat_colors) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_y_continuous(limits = c(0,60), expand = c(0, 1.0)) +
+  labs(y = "", x = "Cluster ID") +
+  ggtitle("Male-specific Network")
+```
+
+```{r}
+cluster_plot_f + cluster_plot_m
+```
+
+
+## CluSim
+
+
+```{r}
+node_intersection = intersect(
+  G_f_clusters$Node,
+  G_m_clusters$Node
+)
+```
+
+```{r}
+G_f_clusters_filtered = G_f_clusters[
+  G_f_clusters$Node %in% node_intersection,
+]
+
+G_m_clusters_filtered = G_m_clusters[
+  G_m_clusters$Node %in% node_intersection,
+]
+```
+
+
+```{r}
+G_f_clusters_sorted <- G_f_clusters_filtered |>
+  arrange(desc(Node))
+
+G_m_clusters_sorted <- G_m_clusters_filtered |>
+  arrange(desc(Node))
+```
+
+
+```{r}
+element_sim(
+  G_f_clusters_sorted$Cluster,
+  G_m_clusters_sorted$Cluster
+)
+```
+
