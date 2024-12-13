@@ -5,7 +5,7 @@ library(magrittr);library(igraph);library(tidyverse)
 library(gridExtra)
 library(patchwork)
 library(ClustAssess)
-```
+``` 
 
 
 
@@ -105,5 +105,24 @@ element_sim(
   G_f_clusters_sorted$Cluster,
   G_m_clusters_sorted$Cluster
 )
+```
+
+
+Get the 1 nodes for both sexes and compare
+```{r}
+f_cluster1 <- G_f_clusters |>
+  filter(Cluster == "1")
+
+m_cluster1 <- G_m_clusters |>
+  filter(Cluster == "1")
+```
+
+```{r}
+common_1 = intersect(f_cluster1$Id, m_cluster1$Node)
+```
+
+```{r}
+intersection = f_cluster1 |>
+  filter(Id %in% common_1)
 ```
 
